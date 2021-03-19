@@ -12,7 +12,7 @@ app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "https://www.lighthouselabs.ca",
-  "9sm5xK": "https//www.google.com"
+  "9sm5xK": "https://www.google.com"
 };
 
 app.get("/", (req, res) => {
