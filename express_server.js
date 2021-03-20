@@ -11,8 +11,8 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": "https://www.lighthouselabs.ca",
-  "9sm5xK": "https://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
 const users = { 
@@ -47,7 +47,13 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     user: users[req.cookies["user_id"]] };
-  res.render("urls_new", templateVars);
+
+  if (req.cookies["user_id"]){
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
+  
 });
 
 app.get("/register", (req, res) => {
@@ -65,11 +71,22 @@ app.get("/login", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]]
    }; 
   res.render("urls_show", templateVars);
 });
+
+function urlsForUser(id) {
+  let urlsOfCurrentUser = new Object();
+  for (const sURL in urlDatabase) {
+    if (urlDatabase[sURL].userID === id) {
+      urlsOfCurrentUser[sURL] = urlDatabase[sURL];
+    }
+  }
+  console.log(urlsOfCurrentUser);
+  return urlsOfCurrentUser;
+};
 
 function generateRandomString() {
     let result = '';
@@ -103,18 +120,33 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   console.log(longURL);
   res.redirect(String(longURL));
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  const currentUserID = req.cookies["user_id"];
+  const myURL = urlsForUser(currentUserID);
+  for (const sURL in myURL) {
+    if (sURL === req.params.shortURL) {
+      delete urlDatabase[req.params.shortURL];
+    } 
+  }
   res.redirect("/urls");
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.editURL;
+  const currentUserID = req.cookies["user_id"];
+  const myURL = urlsForUser(currentUserID);
+  for (const sURL in myURL) {
+    if (sURL === req.params.shortURL) {
+      urlDatabase[sURL].longURL = req.body.editURL;
+    } else {
+      console.log("can not edit");
+    }
+  }
+  
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
