@@ -10,6 +10,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+const bcrypt = require('bcrypt');
+
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
@@ -160,14 +162,15 @@ app.post("/login", (req, res) => {
     res.sendStatus(403);
   }
 
-  if (users[checkUser].password !== loginPW) {
+  if (bcrypt.compareSync(loginPW, users[checkUser].password)) {
+    res.cookie("user_id", users[checkUser].id);
+    res.redirect("/urls");
+  } else {
     console.log("password not match");
     res.sendStatus(403);
   }
   
-  console.log(users[checkUser].id);
-  res.cookie("user_id", users[checkUser].id);
-  res.redirect("/urls");
+
 
 
 });
@@ -190,10 +193,12 @@ app.post("/register", (req, res) => {
     res.sendStatus(400);
   } else {
     const newID = createRandomID();
+    const password = req.body.password; 
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
     users[newID] = {
       id : newID,
-      password : req.body.password,
+      password : hashedPassword,
       email : req.body.email
     }
   
