@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-//const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
@@ -11,7 +10,6 @@ const PORT = 8080; // default port 8080
 //Middleware
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['hellothere','IloveDima']
@@ -49,12 +47,12 @@ app.get("/urls", (req, res) => {
           foundURLs.push(urlKeys);
         }
       }
-      return foundURLs;
+      return foundURLs;   // return the user's own url list as an Array
     }
   };  
  
   if (!req.session.user_id) {
-    templateVars.urls = [];
+    templateVars.urls = [];        // when no users logged-in, url list is empty.
   };
   res.render("urls_index", templateVars);
 
@@ -65,7 +63,7 @@ app.get("/register", (req, res) => {
     user: users[req.session.user_id] 
   }
   if (req.session.user_id) {
-    res.redirect("/urls");
+    res.redirect("/urls");          // when a user already logged-in, the register page does not appear
   } else {
     res.render("urls_register", templateVars);
   }
@@ -77,7 +75,7 @@ app.get("/login", (req, res) => {
     user: users[req.session.user_id] 
   }
   if (req.session.user_id) {
-    res.redirect("/urls");
+    res.redirect("/urls");         // when a user already logged-in, the login page does not appear
   } else {
     res.render("urls_login", templateVars);
   }
@@ -93,7 +91,7 @@ app.get("/urls/new", (req, res) => {
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login");
-    console.log("please login to create new URL")
+    console.log("please login to create new URL");
   }
   
 });
@@ -101,7 +99,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(String(longURL));
-
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -109,7 +106,7 @@ app.get("/urls/:shortURL", (req, res) => {
     shortU: req.params.shortURL, 
     longU: urlDatabase[req.params.shortURL].longURL,
     user: users[req.session.user_id],
-    urlmatch: function() {
+    urlmatch: function() {                       // the function check if current shortURL is on the user's own or not    
       let result = true;
       if (urlDatabase[this.shortU].userID === req.session.user_id) {
         result = true;
@@ -122,18 +119,6 @@ app.get("/urls/:shortURL", (req, res) => {
    }
   res.render("urls_show", templateVars);
 });
-
-// check User id match and return the user object
-function urlsForUser(id) {
-  let urlsOfCurrentUser = new Object();
-  for (const sURL in urlDatabase) {
-    if (urlDatabase[sURL].userID === id) {
-      urlsOfCurrentUser[sURL] = urlDatabase[sURL];
-    }
-  }
-  console.log(urlsOfCurrentUser);
-  return urlsOfCurrentUser;
-};
 
 // Generating new short URL
 function generateRandomString() {
@@ -152,6 +137,18 @@ function createRandomID() {
   return `user${userNumber}RandomID`;
 }
 
+// check User id match and return the user object
+function urlsForUser(id) {
+  let urlsOfCurrentUser = new Object();
+  for (const sURL in urlDatabase) {
+    if (urlDatabase[sURL].userID === id) {
+      urlsOfCurrentUser[sURL] = urlDatabase[sURL];
+    }
+  }
+  console.log(urlsOfCurrentUser);
+  return urlsOfCurrentUser;
+};
+
 // Check exiting eamil or not
 function checkSameEmail(newEmail) {
   for (const user in users) {
@@ -164,8 +161,6 @@ function checkSameEmail(newEmail) {
 
 
 // POST Route
-
-
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(); 
   urlDatabase[shortURL] = {
