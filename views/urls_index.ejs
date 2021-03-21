@@ -22,9 +22,13 @@
         </tr>
       </thead>
       <tbody>
-        
-        <% for(let url in urls) { %>
-          
+        <% if (!user) { %>
+          <div style="padding: 1em; margin: 1em; background: #ff0">
+            <h5>Please login or Create an account (Click Register above)</h5>
+          </div>
+        <% } %>
+
+         <% for (let url of urllist()) { %>
           <tr>
             <td><%= url %></td>
             <td><%= urls[url].longURL %></td>
@@ -39,7 +43,6 @@
               </form>
             </td>
           </tr>
-        
         <% } %>
       </tbody>
     </table>

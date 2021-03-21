@@ -16,13 +16,13 @@ const testUsers = {
 };
 
 describe('getUserByEmail', function() {
-  it('should return a user with valid email', function() {
+  it('should return a userID with valid email', function() {
     const users = testUsers;
     const user = getUserByEmail("user@example.com", users)
     const expectedOutput = "userRandomID";
     assert.equal(user, expectedOutput);
   });
-  it('should return a user with valid email', function() {
+  it('should return undefined with unvalid email', function() {
     const users = testUsers;
     const user = getUserByEmail("hi@example.com", users)
     assert.notExists(user, 'baz is either null or undefined');
