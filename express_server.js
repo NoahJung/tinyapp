@@ -1,22 +1,24 @@
 const express = require("express");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const bcrypt = require('bcrypt');
+
 const app = express();
 const PORT = 8080; // default port 8080
 
+
+//Middleware
 app.set("view engine", "ejs");
-
-const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-
-const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-const bcrypt = require('bcrypt');
 
+//Databases
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
-//som
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -30,6 +32,8 @@ const users = {
   }
 }
 
+
+// server connecting
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -39,23 +43,13 @@ app.listen(PORT, () => {
 });
 
 
+
+// GET Route
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
-});
-
-app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-    user: users[req.cookies["user_id"]] };
-
-  if (req.cookies["user_id"]){
-    res.render("urls_new", templateVars);
-  } else {
-    res.redirect("/login");
-  }
-  
 });
 
 app.get("/register", (req, res) => {
@@ -70,6 +64,24 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  const templateVars = { 
+    user: users[req.cookies["user_id"]] };
+
+  if (req.cookies["user_id"]){
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
+  
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log(longURL);
+  res.redirect(String(longURL));
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
@@ -79,6 +91,8 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
+// check User id match and return user
 function urlsForUser(id) {
   let urlsOfCurrentUser = new Object();
   for (const sURL in urlDatabase) {
@@ -90,6 +104,7 @@ function urlsForUser(id) {
   return urlsOfCurrentUser;
 };
 
+// Generating new short URL
 function generateRandomString() {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -100,11 +115,13 @@ function generateRandomString() {
     return result;
 };
 
+// Creat new User ID
 function createRandomID() {
   const userNumber = Object.keys(users).length + 1;
   return `user${userNumber}RandomID`;
 }
 
+// Check exiting eamil or not
 function checkSameEmail(newEmail) {
   for (const user in users) {
     if (newEmail === users[user]["email"]) {
@@ -114,6 +131,8 @@ function checkSameEmail(newEmail) {
   }
 } 
 
+
+// POST Route
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
@@ -121,11 +140,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log(longURL);
-  res.redirect(String(longURL));
-});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUserID = req.cookies["user_id"];
@@ -169,19 +183,13 @@ app.post("/login", (req, res) => {
     console.log("password not match");
     res.sendStatus(403);
   }
-  
-
-
 
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
-
 });
-
-
 
 app.post("/register", (req, res) => {
   if (req.body.password === "" || req.body.email === "") {
@@ -206,7 +214,5 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", users[newID].id);
     res.redirect("/urls");
   }
-
-
 
 });
