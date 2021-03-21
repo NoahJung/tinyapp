@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 //const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const helpers = require('helpers.js');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -97,7 +98,6 @@ app.get("/urls/:shortURL", (req, res) => {
    }; 
   res.render("urls_show", templateVars);
 });
-
 
 // check User id match and return user
 function urlsForUser(id) {
